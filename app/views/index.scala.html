@@ -1,7 +1,6 @@
-@(message: String)
+@()(implicit request: play.api.mvc.Request[Any], lang: Lang)
 
-@main("Welcome to Play") {
+@main() {
 
-    @play20.welcome(message)
 
 }
