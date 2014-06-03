@@ -9,7 +9,7 @@ libraryDependencies ++= Seq(
   "org.webjars" % "bootswatch-superhero" % "3.1.1",
   "org.webjars" % "jquery" % "2.1.1",
   "org.elasticsearch" % "elasticsearch" % "1.1.1",
-  "org.apache.poi" % "poi" % "3.10-FINAL"e dependenie
+  "org.apache.poi" % "poi" % "3.10-FINAL"
 )
 
 play.Project.playScalaSettings
