@@ -1,6 +1,17 @@
 @()(implicit request: play.api.mvc.Request[Any], lang: Lang)
 
 @main() {
+  <form class="">
+    <div class="row">
+      <div class="col-md-11">
+        <div class="form-group">
+          <input type="text" class="form-control" id="searchFied">
+        </div>
+      </div>
+      <div class="col-md-1">
+        <button class="btn btn-primary">@Messages("search")</button>
+      </div>
+    </div>
 
-
+  </form>
 }
