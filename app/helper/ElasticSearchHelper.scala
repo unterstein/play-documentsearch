@@ -81,7 +81,7 @@ object ElasticSearchHelper {
   }
 
   private def hashFileName(file: File): String = {
-    md5(file.getParentFile.getAbsolutePath)
+    md5(file.getAbsolutePath)
   }
 
   private def base64(file: File): String = {
