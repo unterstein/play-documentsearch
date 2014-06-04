@@ -25,7 +25,7 @@ object Global extends GlobalSettings {
   private val cronIntervalInSeconds: Int = conf.getInt("cronIntervalInSeconds")
 
   override def onStart(app: Application) = {
-    log.info("starting")
+    log.info("Starting play-documentsearch application")
     // cron actor
     val cron = Akka.system.actorOf(Props[CronActor])
     cronJob = Akka.system.scheduler.schedule(200 milliseconds, cronIntervalInSeconds seconds, cron, "sync")
