@@ -8,19 +8,30 @@ import java.io.File
 import org.elasticsearch.action.index.IndexRequestBuilder
 import org.elasticsearch.common.xcontent.XContentFactory._
 import org.apache.commons.io.FileUtils
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest
+import org.elasticsearch.index.query.QueryBuilders
 
 
 object ElasticSearchHelper {
 
-  private val logger: Logger = LoggerFactory.getLogger(ElasticSearchHelper.getClass)
+  private val log: Logger = LoggerFactory.getLogger(ElasticSearchHelper.getClass)
 
   private val client = nodeBuilder().local(true).node().client()
 
   private val index = "documentsearch"
 
+  private val indexType = "document"
+
   def sync(): Unit = {
-    // delete old index
-    client.prepareDelete().setIndex(index).execute().actionGet()
+    log.info("Syncing files to elasticsearch")
+    try {
+      // clear old index
+      client.prepareDeleteByQuery(index).
+        setQuery(QueryBuilders.matchAllQuery()).
+        setTypes(indexType).execute().actionGet()
+    } catch {
+      case o_O: Exception => log.warn("Unable to clear index", o_O)
+    }
     // re index
     val bulkIndex = client.prepareBulk()
     handleFile(new File(Global.documentFolder)).foreach(indexAction => bulkIndex.add(indexAction))
@@ -36,8 +47,7 @@ object ElasticSearchHelper {
         }.flatten.toList
       } else {
         // is file
-        List(client.prepareIndex()
-          .setIndex(index)
+        List(client.prepareIndex(index, indexType)
           .setSource(// _body
             jsonBuilder()
               .startObject()

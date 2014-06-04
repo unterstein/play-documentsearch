@@ -3,6 +3,7 @@ name := "play-documentsearch"
 version := "1.0-SNAPSHOT"
 
 libraryDependencies ++= Seq(
+  "ch.qos.logback" % "logback-classic" % "1.0.13",
   cache,
   "org.webjars" %% "webjars-play" % "2.2.2-1",
   "org.webjars" % "bootstrap" % "3.1.0",
