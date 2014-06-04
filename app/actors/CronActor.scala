@@ -15,7 +15,12 @@ class CronActor extends Actor {
       val command = Global.cronCommand
       if (StringUtils.isNotEmpty(command)) {
         log.info("Executing cron command")
-        new ProcessBuilder(command).directory(Global.getDocumentBaseDir).start().waitFor()
+        try {
+          new ProcessBuilder(command).directory(Global.getDocumentBaseDir).start().waitFor()
+        } catch {
+          case o_O: Exception =>
+            log.warn("Unable to run cron command: " + command, o_O)
+        }
       }
 
       ElasticSearchHelper.sync()
