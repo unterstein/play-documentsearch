@@ -8,6 +8,9 @@ object Global extends GlobalSettings {
 
   private val conf = ConfigFactory.load()
 
+  val documentFolder = replaceHome(conf.getString("documentFolder"))
+  val cronCommand = conf.getString("cronCommand")
+
   override def onStart(app: Application) = {
 
   }
@@ -15,9 +18,6 @@ object Global extends GlobalSettings {
   override def onStop(app: Application) = {
     ElasticSearchHelper.close()
   }
-
-  val documentFolder = replaceHome(conf.getString("documentFolder"))
-  val cronCommand = conf.getString("cronCommand")
 
   def replaceHome(path: String): String = {
     if (path.startsWith("~")) {
