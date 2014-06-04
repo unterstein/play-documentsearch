@@ -11,6 +11,7 @@ import org.elasticsearch.index.query.QueryBuilders
 import javax.xml.bind.DatatypeConverter
 import java.security.MessageDigest
 import java.math.BigInteger
+import org.elasticsearch.common.unit.TimeValue
 
 
 object ElasticSearchHelper {
@@ -29,9 +30,9 @@ object ElasticSearchHelper {
     log.info("Syncing files to elasticsearch")
     try {
       // clear old index
-      client.prepareDeleteByQuery(index).
-        setQuery(QueryBuilders.matchAllQuery()).
-        setTypes(indexType).execute().actionGet()
+//      client.prepareDeleteByQuery(index).
+//        setQuery(QueryBuilders.matchAllQuery()).
+//        setTypes(indexType).execute().actionGet()
     } catch {
       case o_O: Exception => log.warn("Unable to clear index", o_O)
     }
@@ -40,12 +41,12 @@ object ElasticSearchHelper {
     val requests = handleFile(Global.getDocumentBaseDir)
     if (requests.size > 0) {
       requests.foreach(indexAction => bulkIndex.add(indexAction))
-      val response = bulkIndex.execute().actionGet()
+      val response = bulkIndex.setTimeout(TimeValue.timeValueSeconds(5)).execute().actionGet()
       if (response.hasFailures) {
         log.warn("Warnings during bulk indexing documents: " + response.buildFailureMessage())
       }
     }
-
+    log.info("Syncing files to elasticsearch - successfully")
   }
 
   private def handleFile(file: File): List[IndexRequestBuilder] = {
