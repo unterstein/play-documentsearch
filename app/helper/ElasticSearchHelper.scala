@@ -22,7 +22,9 @@ object ElasticSearchHelper {
     // delete old index
     client.prepareDelete().setIndex(index).execute().actionGet()
     // re index
-    val actions = handleFile(new File(Global.documentFolder))
+    val bulkIndex = client.prepareBulk()
+    handleFile(new File(Global.documentFolder)).foreach(indexAction => bulkIndex.add(indexAction))
+    bulkIndex.execute().actionGet()
   }
 
   private def handleFile(file: File): List[IndexRequestBuilder] = {
