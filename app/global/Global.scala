@@ -10,6 +10,7 @@ import actors.CronActor
 import scala.concurrent.ExecutionContext
 import ExecutionContext.Implicits.global
 import org.slf4j.{LoggerFactory, Logger}
+import java.io.File
 
 object Global extends GlobalSettings {
 
@@ -35,7 +36,11 @@ object Global extends GlobalSettings {
     cronJob.cancel()
   }
 
-  def replaceHome(path: String): String = {
+  def getDocumentBaseDir: File = {
+    new File(replaceHome(documentFolder))
+  }
+
+  private def replaceHome(path: String): String = {
     if (path.startsWith("~")) {
       System.getProperty("user.home") + path.substring(1)
     } else {
