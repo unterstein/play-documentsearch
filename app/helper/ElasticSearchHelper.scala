@@ -61,8 +61,9 @@ object ElasticSearchHelper {
       addField("folder").
       addField("content").
       addField("attributes").
+      setQuery(QueryBuilders.multiMatchQuery(query, "file", "folder", "content", "attributes")).
       execute().actionGet()
-    SearchResult(result.getHits.map {
+    SearchResult(result.getHits.toList.sortBy(_.score()).reverse.map {
       entry =>
         val file = if (entry.field("file") != null) entry.field("file").getValue[String] else ""
         val folder = if (entry.field("folder") != null) entry.field("folder").getValue[String] else ""
@@ -73,11 +74,11 @@ object ElasticSearchHelper {
         }
         else null
 
-        SearchHit(file, folder, content, attributes)
+        SearchHit(entry.score, file, folder, content, attributes)
     }.toList)
   }
 
-  case class SearchHit(file: String, folder: String, content: String, attributes: Any)
+  case class SearchHit(score: Float, file: String, folder: String, content: String, attributes: Any)
 
   case class SearchResult(result: util.List[SearchHit])
 
