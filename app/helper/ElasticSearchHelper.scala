@@ -32,10 +32,6 @@ object ElasticSearchHelper {
       val response = client.prepareDeleteByQuery(index).
         setQuery(QueryBuilders.matchAllQuery()).
         setTypes(indexType).execute().actionGet()
-      println(response)
-//      if (response.) {
-//        log.warn("Warnings during bulk indexing documents: " + response.buildFailureMessage())
-//      }
     } catch {
       case o_O: Exception => log.warn("Unable to clear index", o_O)
     }
