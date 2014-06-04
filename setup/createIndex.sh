@@ -10,8 +10,9 @@ curl -X POST http://localhost:9200/documentsearch -d '{
             "title"    : { "store" : "yes", "analyzer" : "english"},
             "date"     : { "store" : "yes" },
             "keywords" : { "store" : "yes", "analyzer" : "keyword" },
-            "_name"    : { "store" : "yes" },
-            "content_type" : { "store" : "yes" }
+            "name"    : { "store" : "yes" },
+            "content_type" : { "store" : "yes" },
+            "content_length" : { "store" : "yes" }
           }
         }
       }
