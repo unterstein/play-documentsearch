@@ -29,7 +29,7 @@ object ElasticSearchHelper {
     log.info("Syncing files to elasticsearch")
     try {
       // clear old index
-      val response = client.prepareDeleteByQuery(index).
+      client.prepareDeleteByQuery(index).
         setQuery(QueryBuilders.matchAllQuery()).
         setTypes(indexType).execute().actionGet()
     } catch {
