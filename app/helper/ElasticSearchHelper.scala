@@ -6,13 +6,12 @@ import global.Global
 import java.io.File
 import org.elasticsearch.action.index.IndexRequestBuilder
 import org.elasticsearch.common.xcontent.XContentFactory._
-import org.apache.commons.io.FileUtils
 import org.elasticsearch.index.query.QueryBuilders
-import javax.xml.bind.DatatypeConverter
 import java.security.MessageDigest
-import java.math.BigInteger
 import org.elasticsearch.common.unit.TimeValue
-
+import scala.collection.JavaConversions._
+import java.math.BigInteger
+import java.util
 
 object ElasticSearchHelper {
 
@@ -30,9 +29,10 @@ object ElasticSearchHelper {
     log.info("Syncing files to elasticsearch")
     try {
       // clear old index
-//      client.prepareDeleteByQuery(index).
-//        setQuery(QueryBuilders.matchAllQuery()).
-//        setTypes(indexType).execute().actionGet()
+      client.prepareDeleteByQuery(index).
+        setQuery(QueryBuilders.matchAllQuery()).
+        setTimeout(TimeValue.timeValueSeconds(5)).
+        setTypes(indexType).execute().actionGet()
     } catch {
       case o_O: Exception => log.warn("Unable to clear index", o_O)
     }
@@ -49,6 +49,27 @@ object ElasticSearchHelper {
     log.info("Syncing files to elasticsearch - successfully")
   }
 
+  def search(query: String): SearchResult = {
+    val result = client.prepareSearch(index).
+      setTypes(indexType).
+      addField("file").
+      addField("folder").
+      addField("content").
+      addField("attributes").
+      execute().actionGet()
+    SearchResult(result.getHits.map {
+      entry =>
+        val file = if (entry.field("file") != null) entry.field("file").getValue[String] else ""
+        val folder = if (entry.field("folder") != null) entry.field("folder").getValue[String] else ""
+        val content = if (entry.field("content") != null) entry.field("content").getValue[String] else ""
+        val attributes = if (entry.field("attributes") != null) entry.field("attributes").getValue[String] else null
+        SearchHit(file, folder, content, attributes)
+    }.toList)
+  }
+
+  case class SearchHit(file: String, folder: String, content: String, attributes: Any)
+  case class SearchResult(result: util.List[SearchHit])
+
   private def handleFile(file: File): List[IndexRequestBuilder] = {
     if (file.exists()) {
       if (file.isDirectory) {
@@ -59,15 +80,17 @@ object ElasticSearchHelper {
       } else {
         if (file.isFile && file.getName.startsWith(".") == false) {
           // is file
+          val parseResult = ParseHelper.parse(file)
           List(client.prepareIndex(index, indexType, hashFileName(file))
             .setSource(// _body
               jsonBuilder()
                 .startObject()
-                .field("_name", file.getName)
-                .field("_folder", file.getParentFile.getAbsolutePath.replace(Global.documentFolder, ""))
-                .field("content", base64(file))
+                .field("file", file.getName)
+                .field("folder", file.getParentFile.getAbsolutePath.replace(Global.documentFolder, ""))
+                .field("content", parseResult._1)
+                .field("attributes", parseResult._2)
                 .endObject()
-            )
+            ).setCreate(true)
           )
         } else {
           List() // empty
@@ -84,10 +107,6 @@ object ElasticSearchHelper {
 
   private def hashFileName(file: File): String = {
     md5(file.getAbsolutePath)
-  }
-
-  private def base64(file: File): String = {
-    DatatypeConverter.printBase64Binary(FileUtils.readFileToByteArray(file)).replace("\n", "")
   }
 
   private def md5(fileName: String): String = {

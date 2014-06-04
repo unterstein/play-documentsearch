@@ -6,8 +6,6 @@ import org.apache.tika.sax.WriteOutContentHandler
 import org.apache.tika.parser.AutoDetectParser
 import org.apache.tika.metadata.Metadata
 
-// http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/mapping-attachment-type.html
-// bin/plugin -install elasticsearch/elasticsearch-mapper-attachments/2.0.0
 object ParseHelper {
 
   private val logger: Logger = LoggerFactory.getLogger(ParseHelper.getClass)
