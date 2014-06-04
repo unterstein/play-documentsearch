@@ -2,6 +2,7 @@ package global
 
 import play.api._
 import com.typesafe.config.ConfigFactory
+import helper.ElasticSearchHelper
 
 object Global extends GlobalSettings {
 
@@ -12,7 +13,7 @@ object Global extends GlobalSettings {
   }
 
   override def onStop(app: Application) = {
-
+    ElasticSearchHelper.close()
   }
 
   val documentFolder = replaceHome(conf.getString("documentFolder"))
