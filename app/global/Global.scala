@@ -25,6 +25,7 @@ object Global extends GlobalSettings {
   private val cronIntervalInSeconds: Int = conf.getInt("cronIntervalInSeconds")
 
   override def onStart(app: Application) = {
+    super.onStart(app)
     log.info("Starting play-documentsearch application")
     // cron actor
     val cron = Akka.system.actorOf(Props[CronActor])
@@ -32,6 +33,7 @@ object Global extends GlobalSettings {
   }
 
   override def onStop(app: Application) = {
+    super.onStop(app)
     ElasticSearchHelper.close()
     cronJob.cancel()
   }

@@ -1,23 +1,24 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
     <conversionRule conversionWord="coloredLevel" converterClass="play.api.Logger$ColoredLevel"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%coloredLevel %date{ISO8601} - %logger{35} - %msg%n</pattern>
+            <pattern>%coloredLevel %logger{15} - %message%n%xException{5}</pattern>
         </encoder>
     </appender>
 
     <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>./logs/log.log</file>
-        <append>true</append>
+        <file>${application.home}/logs/application.log</file>
         <encoder>
-            <pattern>[%-5level] %date{ISO8601} - %logger{35} - %msg%n</pattern>
+            <pattern>%date - [%level] - from %logger in %thread %n%message%n%xException%n</pattern>
         </encoder>
     </appender>
 
-    <root level="info">
+    <logger name="play" level="INFO"/>
+    <logger name="application" level="INFO"/>
+
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </root>
