@@ -33,7 +33,9 @@ object ElasticSearchHelper {
 
   def sync(): Unit = {
     log.info("Syncing files to elasticsearch")
+    log.info("wait for green status...")
     client.admin().cluster().prepareHealth(index).setWaitForGreenStatus() // important! :)
+    log.info("clean old index")
     try {
       // clear old index
       client.prepareDeleteByQuery(index).
@@ -44,6 +46,7 @@ object ElasticSearchHelper {
       case o_O: Exception => log.warn("Unable to clear index", o_O)
     }
     // re index
+    log.info("re-index")
     val bulkIndex = client.prepareBulk()
     val requests = handleFile(Global.getDocumentBaseDir)
     if (requests.size > 0) {
