@@ -100,15 +100,15 @@ object ElasticSearchHelper {
       } else {
         if (file.isFile && file.getName.startsWith(".") == false) {
           // is file
-//          val parseResult = ParseHelper.parse(file)
+          val parseResult = ParseHelper.parse(file)
           List(client.prepareIndex(index, indexType, hashFileName(file))
             .setSource(// _body
               jsonBuilder()
                 .startObject()
                 .field("file", file.getName)
                 .field("folder", file.getParentFile.getAbsolutePath.replace(Global.documentFolder, ""))
-                .field("content", "")
-                .field("attributes", "")
+                .field("content", parseResult.content)
+                .field("attributes", new Gson().toJson(parseResult.attributes))
                 .endObject()
             ).setCreate(true)
           )
