@@ -13,7 +13,7 @@ object ApplicationController extends Controller {
 
   def search(query: String) = Action {
     implicit request =>
-      Ok(views.html.index(ElasticSearchHelper.search(query)))
+      Ok(views.html.index(ElasticSearchHelper.search(query), query))
   }
 
   def searchJson(query: String) = Action {

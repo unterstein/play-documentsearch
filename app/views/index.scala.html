@@ -1,12 +1,12 @@
-@(searchResult: models.SearchResult = null)(implicit request: play.api.mvc.Request[Any], lang: Lang)
+@(searchResult: models.SearchResult = null, query: String = "")(implicit request: play.api.mvc.Request[Any], lang: Lang)
 
 @main() {
-  <form class="">
+  <form method="get">
     <div class="row">
       <div class="col-md-11">
         <div class="form-group has-feedback">
           <label class="control-label">&nbsp;</label>
-          <input type="text" class="form-control" id="tipue_search_input">
+          <input type="text" class="form-control" name="query" id="tipue_search_input" value="@query">
           <span class="glyphicon glyphicon-search form-control-feedback"></span>
         </div>
       </div>
