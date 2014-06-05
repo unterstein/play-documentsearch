@@ -33,6 +33,7 @@ object ElasticSearchHelper {
 
   def sync(): Unit = {
     log.info("Syncing files to elasticsearch")
+    client.admin().cluster().prepareHealth(index).setWaitForGreenStatus() // important! :)
     try {
       // clear old index
       client.prepareDeleteByQuery(index).
@@ -96,15 +97,15 @@ object ElasticSearchHelper {
       } else {
         if (file.isFile && file.getName.startsWith(".") == false) {
           // is file
-          val parseResult = ParseHelper.parse(file)
+//          val parseResult = ParseHelper.parse(file)
           List(client.prepareIndex(index, indexType, hashFileName(file))
             .setSource(// _body
               jsonBuilder()
                 .startObject()
                 .field("file", file.getName)
                 .field("folder", file.getParentFile.getAbsolutePath.replace(Global.documentFolder, ""))
-                .field("content", parseResult.content)
-                .field("attributes", new Gson().toJson(parseResult.attributes))
+                .field("content", "")
+                .field("attributes", "")
                 .endObject()
             ).setCreate(true)
           )
