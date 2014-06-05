@@ -1,0 +1,5 @@
+@(searchHit: models.SearchHit)(implicit request: play.api.mvc.Request[Any], lang: Lang)
+
+<blockquote>
+  <p>@searchHit.content</p>
+</blockquote>

@@ -1,0 +1,9 @@
+@(searchResult: models.SearchResult)(implicit request: play.api.mvc.Request[Any], lang: Lang)
+
+@import scala.collection.JavaConversions._
+
+<ul>
+  @searchResult.hits.map { hit =>
+      <li>@searchHitPanel(hit)</li>
+  }
+</ul>

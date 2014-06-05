@@ -15,6 +15,7 @@ import java.io.File
 import org.elasticsearch.action.index.IndexRequestBuilder
 import scala.collection.JavaConversions._
 import java.math.BigInteger
+import models.{SearchHit, SearchResult}
 
 object ElasticSearchHelper {
 
@@ -74,13 +75,9 @@ object ElasticSearchHelper {
         }
         else null
 
-        SearchHit(entry.score, file, folder, content, attributes)
+        SearchHit(entry.score, query, file, folder, content, attributes)
     }.toList)
   }
-
-  case class SearchHit(score: Float, file: String, folder: String, content: String, attributes: Any)
-
-  case class SearchResult(result: util.List[SearchHit])
 
   private def handleFile(file: File): List[IndexRequestBuilder] = {
     if (file.exists()) {

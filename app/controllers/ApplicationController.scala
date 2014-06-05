@@ -16,4 +16,9 @@ object ApplicationController extends Controller {
       Ok(new Gson().toJson(ElasticSearchHelper.search(query))).as("application/json;charset=UTF-8")
   }
 
+  def searchPanel(query: String) = Action {
+    implicit request =>
+      Ok(views.html.searchResultPanel(ElasticSearchHelper.search(query)))
+  }
+
 }
