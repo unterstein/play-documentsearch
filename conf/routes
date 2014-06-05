@@ -5,7 +5,7 @@
 # Home page
 GET        /                     controllers.ApplicationController.index
 GET        /search               controllers.ApplicationController.search(query: String)
-GET        /searchPanel          controllers.ApplicationController.searchPanel(query: String)
+GET        /search.json          controllers.ApplicationController.searchJson(query: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET        /webjars/*file        controllers.WebJarAssets.at(file)

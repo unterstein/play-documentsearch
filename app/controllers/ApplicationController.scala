@@ -13,12 +13,12 @@ object ApplicationController extends Controller {
 
   def search(query: String) = Action {
     implicit request =>
-      Ok(new Gson().toJson(ElasticSearchHelper.search(query))).as("application/json;charset=UTF-8")
+      Ok(views.html.index(ElasticSearchHelper.search(query)))
   }
 
-  def searchPanel(query: String) = Action {
+  def searchJson(query: String) = Action {
     implicit request =>
-      Ok(views.html.searchResultPanel(ElasticSearchHelper.search(query)))
+      Ok(new Gson().toJson(ElasticSearchHelper.search(query))).as("application/json;charset=UTF-8")
   }
 
 }

@@ -1,4 +1,4 @@
-@()(implicit request: play.api.mvc.Request[Any], lang: Lang)
+@(searchResult: models.SearchResult = null)(implicit request: play.api.mvc.Request[Any], lang: Lang)
 
 @main() {
   <form class="">
@@ -11,11 +11,14 @@
         </div>
       </div>
       <div class="col-md-1">
-          <label class="control-label">&nbsp;</label>
+        <label class="control-label">&nbsp;</label>
         <button class="btn btn-primary">@Messages("search")</button>
       </div>
     </div>
   </form>
 
+  @if(searchResult != null) {
+    @searchResultPanel(searchResult)
+  }
 
 }

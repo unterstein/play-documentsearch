@@ -2,8 +2,6 @@
 
 @import scala.collection.JavaConversions._
 
-<ul>
-  @searchResult.hits.map { hit =>
-      <li>@searchHitPanel(hit)</li>
-  }
-</ul>
+@searchResult.hits.map { hit =>
+  @searchHitPanel(hit)
+}
