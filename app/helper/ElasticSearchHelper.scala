@@ -62,6 +62,7 @@ object ElasticSearchHelper {
       addField("folder").
       addField("content").
       addField("attributes").
+      addHighlightedField("content", 100, 100). // this is magic :)
       setQuery(QueryBuilders.multiMatchQuery(query, "file", "folder", "content", "attributes")).
       execute().actionGet()
     SearchResult(result.getHits.toList.sortBy(_.score()).reverse.map {
@@ -75,7 +76,13 @@ object ElasticSearchHelper {
         }
         else null
 
-        SearchHit(entry.score, query, file, folder, content, attributes)
+        val contentHighlights = entry.highlightFields().get("content")
+        val highlights: util.List[String] = if (contentHighlights != null) {
+          contentHighlights.fragments().map { t => t.string()}.toList
+        } else {
+          List()
+        }
+        SearchHit(entry.score, query, file, folder, content, attributes, highlights)
     }.toList)
   }
 
