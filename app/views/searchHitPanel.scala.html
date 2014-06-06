@@ -5,6 +5,6 @@
 <h2>@searchHit.folder @searchHit.file</h2>
 @searchHit.highlights.map { highlight =>
   <blockquote>
-    <p>@Html(highlight.replace("<em>", "<b>").replace("</em>", "</b>"))</p>
+    <p>@Html(highlight)</p>
   </blockquote>
 }
