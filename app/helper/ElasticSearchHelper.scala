@@ -14,8 +14,6 @@ import java.io.File
 import org.elasticsearch.action.index.IndexRequestBuilder
 import scala.collection.JavaConversions._
 import java.math.BigInteger
-import models.{SearchHit, SearchResult}
-import org.elasticsearch.client.transport.TransportClient
 import org.elasticsearch.common.settings.ImmutableSettings
 import org.elasticsearch.node.NodeBuilder._
 import models.SearchHit
@@ -41,8 +39,11 @@ object ElasticSearchHelper {
 
   private val typeToken: Type = new TypeToken[util.Map[String, Any]]() {}.getType
 
+  private var syncing = false
+
   def sync(): Unit = {
     log.info("Syncing files to elasticsearch")
+    syncing = true
     log.info("clean old index")
     try {
       // clear old index
@@ -64,39 +65,52 @@ object ElasticSearchHelper {
         log.warn("Warnings during bulk indexing documents: " + response.buildFailureMessage())
       }
     }
+    syncing = false
     log.info("Syncing files to elasticsearch - successfully")
   }
 
   def search(query: String): SearchResult = {
-    val result = client.prepareSearch(index).
-      setTypes(indexType).
-      addField("file").
-      addField("folder").
-      addField("content").
-      addField("attributes").
-      addHighlightedField("content", 100, 100). // this is magic :)
-      setQuery(QueryBuilders.multiMatchQuery(query, "file", "folder", "content", "attributes")).
-      execute().actionGet()
-    SearchResult(result.getHits.toList.sortBy(_.score()).reverse.map {
-      entry =>
-        val file = if (entry.field("file") != null) entry.field("file").getValue[String] else ""
-        val folder = if (entry.field("folder") != null) entry.field("folder").getValue[String] else ""
-        val content = if (entry.field("content") != null) entry.field("content").getValue[String] else ""
-        val attributes: util.Map[String, Any] = if (entry.field("attributes") != null) {
-          val value = entry.field("attributes").getValue[String]
-          new Gson().fromJson(value, typeToken)
-        }
-        else null
+    if(syncing == false) {
+      try {
+        val result = client.prepareSearch(index).
+          setTypes(indexType).
+          addField("file").
+          addField("folder").
+          addField("content").
+          addField("attributes").
+          addHighlightedField("content", 100, 100). // this is magic :)
+          setQuery(QueryBuilders.multiMatchQuery(query, "file", "folder", "content", "attributes")).
+          execute().actionGet()
+        SearchResult(result.getHits.toList.sortBy(_.score()).reverse.map {
+          entry =>
+            val file = if (entry.field("file") != null) entry.field("file").getValue[String] else ""
+            val folder = if (entry.field("folder") != null) entry.field("folder").getValue[String] else ""
+            val content = if (entry.field("content") != null) entry.field("content").getValue[String] else ""
+            val attributes: util.Map[String, Any] = if (entry.field("attributes") != null) {
+              val value = entry.field("attributes").getValue[String]
+              new Gson().fromJson(value, typeToken)
+            }
+            else null
 
-        val contentHighlights = entry.highlightFields().get("content")
-        val highlights: util.List[String] = if (contentHighlights != null) {
-          contentHighlights.fragments().map { t => t.string()}.toList
-        } else {
-          List()
-        }
-        SearchHit(entry.score, query, file, folder, content, attributes, highlights)
-    }.toList)
+            val contentHighlights = entry.highlightFields().get("content")
+            val highlights: util.List[String] = if (contentHighlights != null) {
+              contentHighlights.fragments().map { t => t.string()}.toList
+            } else {
+              List()
+            }
+            SearchHit(entry.score, query, file, folder, content, attributes, highlights)
+        }.toList)
+      } catch {
+        case o_O: Exception =>
+          log.warn("Unable to search elasticsearch", o_O)
+          emptyResult
+      }
+    } else {
+      emptyResult
+    }
   }
+
+  private def emptyResult = SearchResult(List())
 
   private def handleFile(file: File): List[IndexRequestBuilder] = {
     if (file.exists()) {
