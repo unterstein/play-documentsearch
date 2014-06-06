@@ -2,6 +2,12 @@
 
 @import scala.collection.JavaConversions._
 
-@searchResult.hits.map { hit =>
-  @searchHitPanel(hit)
+@if(searchResult.hits.size > 0) {
+  @searchResult.hits.map { hit =>
+    @searchHitPanel(hit)
+  }
+} else {
+  <blockquote>
+    @Messages("noResult")
+  </blockquote>
 }
