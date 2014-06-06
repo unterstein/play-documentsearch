@@ -16,12 +16,16 @@ import org.elasticsearch.action.index.IndexRequestBuilder
 import scala.collection.JavaConversions._
 import java.math.BigInteger
 import models.{SearchHit, SearchResult}
+import org.elasticsearch.client.transport.TransportClient
+import org.elasticsearch.common.settings.ImmutableSettings
+import org.elasticsearch.common.transport.InetSocketTransportAddress
 
 object ElasticSearchHelper {
 
   private val log: Logger = LoggerFactory.getLogger(ElasticSearchHelper.getClass)
 
-  private val client = nodeBuilder().local(true).node().client()
+  private val client = new TransportClient(ImmutableSettings.settingsBuilder().build())
+  client.addTransportAddress(new InetSocketTransportAddress("localhost", 9300))
 
   private val md5 = MessageDigest.getInstance("MD5")
 
