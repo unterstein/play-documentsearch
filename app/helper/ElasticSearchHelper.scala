@@ -33,8 +33,6 @@ object ElasticSearchHelper {
 
   def sync(): Unit = {
     log.info("Syncing files to elasticsearch")
-    log.info("wait for green status...")
-    client.admin().cluster().prepareHealth(index).setWaitForGreenStatus() // important! :)
     log.info("clean old index")
     try {
       // clear old index
