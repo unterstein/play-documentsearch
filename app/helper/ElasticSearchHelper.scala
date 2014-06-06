@@ -1,7 +1,6 @@
 package helper
 
 import org.slf4j.{LoggerFactory, Logger}
-import org.elasticsearch.node.NodeBuilder._
 import global.Global
 import org.elasticsearch.common.xcontent.XContentFactory._
 import org.elasticsearch.index.query.QueryBuilders
