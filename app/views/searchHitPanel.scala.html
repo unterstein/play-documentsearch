@@ -2,7 +2,7 @@
 
 @import scala.collection.JavaConversions._
 
-<h2>@searchHit.folder @searchHit.file</h2>
+<h2>@searchHit.folder/@searchHit.file</h2>
 @searchHit.highlights.map { highlight =>
   <blockquote>
     <p>@Html(highlight)</p>

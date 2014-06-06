@@ -130,7 +130,7 @@ object ElasticSearchHelper {
   }
 
   def close(): Unit = {
-    client.close()
+    node.close()
   }
 
   private def hashFileName(file: File): String = {
