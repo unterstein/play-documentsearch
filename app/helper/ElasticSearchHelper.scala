@@ -17,14 +17,21 @@ import java.math.BigInteger
 import models.{SearchHit, SearchResult}
 import org.elasticsearch.client.transport.TransportClient
 import org.elasticsearch.common.settings.ImmutableSettings
-import org.elasticsearch.common.transport.InetSocketTransportAddress
+import org.elasticsearch.node.NodeBuilder._
+import models.SearchHit
+import models.SearchResult
 
 object ElasticSearchHelper {
 
   private val log: Logger = LoggerFactory.getLogger(ElasticSearchHelper.getClass)
 
-  private val client = new TransportClient(ImmutableSettings.settingsBuilder().build())
-  client.addTransportAddress(new InetSocketTransportAddress("localhost", 9300))
+  private val elasticsearchSettings = ImmutableSettings.settingsBuilder()
+    .put("path.data", "target/elasticsearch-data")
+    .put("http.port", 9200)
+
+  private val node = nodeBuilder().local(true).settings(elasticsearchSettings.build()).node()
+
+  val client = node.client()
 
   private val md5 = MessageDigest.getInstance("MD5")
 
