@@ -81,8 +81,20 @@ object ElasticSearchHelper {
     log.info("Syncing files to elasticsearch - successfully")
   }
 
+  def startup(): Unit = {
+    try {
+      val tmpFile = File.createTempFile("playdocusearch", "sh")
+      FileUtils.copyInputStreamToFile(getClass.getClassLoader.getResourceAsStream("createIndex.sh"), tmpFile)
+      Runtime.getRuntime.exec("chmod u+x " + tmpFile.getAbsolutePath)
+      Runtime.getRuntime.exec(tmpFile.getAbsolutePath)
+    } catch {
+      case o_O: Exception =>
+        log.warn("Unable to delete/create index", o_O)
+    }
+  }
+
   def search(query: String): SearchResult = {
-    if(syncing == false) {
+    if (syncing == false) {
       try {
         val result = client.prepareSearch(index).
           setTypes(indexType).

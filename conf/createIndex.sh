@@ -23,16 +23,3 @@ curl -X POST http://localhost:9200/documentsearch -d '{
     }
   }
 }'
-
-#curl -X POST http://localhost:9200/documentsearch -d '{
-#  "mappings" : {
-#    "document" : {
-#      "properties" : {
-#        "file"  : { "type": "string", "store" : "yes", "analyzer": "german" },
-#        "folder"  : { "type": "string", "store" : "yes", "analyzer": "german" },
-#        "content"  : { "type": "string", "store" : "yes", "analyzer": "german" },
-#        "attributes"  : { "type": "string", "store" : "yes", "analyzer": "german" }
-#      }
-#    }
-#  }
-#}'

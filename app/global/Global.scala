@@ -28,7 +28,8 @@ object Global extends GlobalSettings {
     log.info("Starting play-documentsearch application")
     // cron actor
     val cron = Akka.system.actorOf(Props[CronActor])
-    cronJob = Akka.system.scheduler.schedule(200 milliseconds, cronIntervalInSeconds seconds, cron, "sync")
+    cronJob = Akka.system.scheduler.schedule(1 second, cronIntervalInSeconds seconds, cron, "sync")
+    ElasticSearchHelper.startup()
   }
 
   override def onStop(app: Application) = {
