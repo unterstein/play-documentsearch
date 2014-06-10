@@ -7,9 +7,6 @@ import org.elasticsearch.index.query.QueryBuilders
 import java.security.MessageDigest
 import org.elasticsearch.common.unit.TimeValue
 import java.util
-import java.lang.reflect.Type
-import com.google.gson.reflect.TypeToken
-import com.google.gson.Gson
 import java.io.File
 import org.elasticsearch.action.index.IndexRequestBuilder
 import scala.collection.JavaConversions._
@@ -38,8 +35,6 @@ object ElasticSearchHelper {
   private val index = "documentsearch"
 
   private val indexType = "document"
-
-  private val typeToken: Type = new TypeToken[util.Map[String, Any]]() {}.getType
 
   private var syncing = false
 
@@ -109,11 +104,6 @@ object ElasticSearchHelper {
             val file = if (entry.field("_name") != null) entry.field("_name").getValue[String] else ""
             val folder = if (entry.field("_folder") != null) entry.field("_folder").getValue[String] else ""
             val content = if (entry.field("content") != null) entry.field("content").getValue[String] else ""
-            val attributes: util.Map[String, Any] = if (entry.field("attributes") != null) {
-              val value = entry.field("attributes").getValue[String]
-              new Gson().fromJson(value, typeToken)
-            }
-            else null
 
             val contentHighlights = entry.highlightFields().get("content")
             val highlights: util.List[String] = if (contentHighlights != null) {
@@ -121,7 +111,7 @@ object ElasticSearchHelper {
             } else {
               List()
             }
-            SearchHit(entry.score, query, file, folder, content, attributes, highlights)
+            SearchHit(entry.score, query, file, folder, content, highlights)
         }.toList)
       } catch {
         case o_O: Exception =>
