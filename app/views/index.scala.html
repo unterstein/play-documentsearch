@@ -1,5 +1,8 @@
 @(searchResult: models.SearchResult = null, query: String = "")(implicit request: play.api.mvc.Request[Any], lang: Lang)
 
+@import scala.collection.JavaConversions._
+@import global.Global
+
 @main() {
   <form method="get" action="search">
     <div class="row">
@@ -18,7 +21,20 @@
   </form>
 
   @if(searchResult != null) {
-    @searchResultPanel(searchResult)
+    @if(searchResult.hits.size > 0) {
+      @searchResult.hits.map { searchHit =>
+        <h2>@Global.documentFolder@searchHit.folder/@searchHit.file</h2>
+        @searchHit.highlights.map { highlight =>
+          <blockquote>
+            <p>@Html(highlight)</p>
+          </blockquote>
+        }
+      }
+    } else {
+      <blockquote>
+      @Messages("noResult")
+      </blockquote>
+    }
   }
 
 }
