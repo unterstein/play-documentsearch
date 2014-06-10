@@ -11,8 +11,8 @@ libraryDependencies ++= Seq(
   "org.elasticsearch" % "elasticsearch" % "1.2.1",
   "org.elasticsearch" % "elasticsearch-mapper-attachments" % "2.0.0",
   "commons-io" % "commons-io" % "2.4",
-  "org.apache.tika" % "tika-core" % "1.5",
-  "org.apache.tika" % "tika-parsers" % "1.5",
+//  "org.apache.tika" % "tika-core" % "1.5",
+//  "org.apache.tika" % "tika-parsers" % "1.5",
   "com.google.code.gson" % "gson" % "2.2.4"
 )
 
