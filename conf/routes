@@ -6,6 +6,7 @@
 GET        /                     controllers.ApplicationController.index
 GET        /search               controllers.ApplicationController.search(query: String)
 GET        /search.json          controllers.ApplicationController.searchJson(query: String)
+GET        /reindex              controllers.ApplicationController.reindex
 
 # Map static resources from the /public folder to the /assets URL path
 GET        /webjars/*file        controllers.WebJarAssets.at(file)

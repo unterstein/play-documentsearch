@@ -18,6 +18,8 @@ import org.elasticsearch.common.settings.ImmutableSettings
 import org.elasticsearch.node.NodeBuilder._
 import models.SearchHit
 import models.SearchResult
+import org.apache.commons.io.FileUtils
+import org.apache.commons.lang3.StringUtils
 
 object ElasticSearchHelper {
 
@@ -42,6 +44,16 @@ object ElasticSearchHelper {
   private var syncing = false
 
   def sync(): Unit = {
+    val command = Global.cronCommand
+    if (StringUtils.isNotEmpty(command)) {
+      log.info("Executing cron command")
+      try {
+        new ProcessBuilder(command).directory(Global.getDocumentBaseDir).start().waitFor()
+      } catch {
+        case o_O: Exception =>
+          log.warn("Unable to run cron command: " + command, o_O)
+      }
+    }
     log.info("Syncing files to elasticsearch")
     syncing = true
     log.info("clean old index")
@@ -74,17 +86,16 @@ object ElasticSearchHelper {
       try {
         val result = client.prepareSearch(index).
           setTypes(indexType).
-          addField("file").
-          addField("folder").
+          addField("_name").
+          addField("_folder").
           addField("content").
-          addField("attributes").
           addHighlightedField("content", 100, 100). // this is magic :)
-          setQuery(QueryBuilders.multiMatchQuery(query, "file", "folder", "content", "attributes")).
+          setQuery(QueryBuilders.multiMatchQuery(query, "_name", "_folder", "content")).
           execute().actionGet()
         SearchResult(result.getHits.toList.sortBy(_.score()).reverse.map {
           entry =>
-            val file = if (entry.field("file") != null) entry.field("file").getValue[String] else ""
-            val folder = if (entry.field("folder") != null) entry.field("folder").getValue[String] else ""
+            val file = if (entry.field("_name") != null) entry.field("_name").getValue[String] else ""
+            val folder = if (entry.field("_folder") != null) entry.field("_folder").getValue[String] else ""
             val content = if (entry.field("content") != null) entry.field("content").getValue[String] else ""
             val attributes: util.Map[String, Any] = if (entry.field("attributes") != null) {
               val value = entry.field("attributes").getValue[String]
@@ -122,15 +133,13 @@ object ElasticSearchHelper {
       } else {
         if (file.isFile && file.getName.startsWith(".") == false) {
           // is file
-          val parseResult = ParseHelper.parse(file)
           List(client.prepareIndex(index, indexType, hashFileName(file))
             .setSource(// _body
               jsonBuilder()
                 .startObject()
-                .field("file", file.getName)
-                .field("folder", file.getParentFile.getAbsolutePath.replace(Global.documentFolder, ""))
-                .field("content", parseResult.content)
-                .field("attributes", new Gson().toJson(parseResult.attributes))
+                .field("_name", file.getName)
+                .field("_folder", file.getParentFile.getAbsolutePath.replace(Global.documentFolder, ""))
+                .field("content", base64(file))
                 .endObject()
             ).setCreate(true)
           )
@@ -149,6 +158,10 @@ object ElasticSearchHelper {
 
   private def hashFileName(file: File): String = {
     md5(file.getAbsolutePath)
+  }
+
+  private def base64(file: File): String = {
+    new sun.misc.BASE64Encoder().encode(FileUtils.readFileToByteArray(file))
   }
 
   private def md5(fileName: String): String = {

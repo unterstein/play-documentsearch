@@ -11,6 +11,12 @@ object ApplicationController extends Controller {
       Ok(views.html.index())
   }
 
+  def reindex = Action {
+    implicit request =>
+      ElasticSearchHelper.sync()
+      Redirect(routes.ApplicationController.index())
+  }
+
   def search(query: String) = Action {
     implicit request =>
       Ok(views.html.index(ElasticSearchHelper.search(query), query))
