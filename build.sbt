@@ -2,6 +2,10 @@ name := "play-documentsearch"
 
 version := "1.0-SNAPSHOT"
 
+resolvers ++= Seq(
+  "Local Maven" at "file://" + Path.userHome.absolutePath + "/.m2/repository"
+)
+
 libraryDependencies ++= Seq(
   cache,
   "org.webjars" %% "webjars-play" % "2.2.2-1",
@@ -13,7 +17,8 @@ libraryDependencies ++= Seq(
   "commons-io" % "commons-io" % "2.4",
 //  "org.apache.tika" % "tika-core" % "1.5",
 //  "org.apache.tika" % "tika-parsers" % "1.5",
-  "com.google.code.gson" % "gson" % "2.2.4"
+  "com.google.code.gson" % "gson" % "2.2.4",
+  "de.micromata" %% "play-elasticsearch-plugin" % "1.0.0-SNAPSHOT"
 )
 
 play.Project.playScalaSettings

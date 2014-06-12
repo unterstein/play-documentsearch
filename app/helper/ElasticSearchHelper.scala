@@ -2,33 +2,24 @@ package helper
 
 import org.slf4j.{LoggerFactory, Logger}
 import global.Global
-import org.elasticsearch.common.xcontent.XContentFactory._
 import org.elasticsearch.index.query.QueryBuilders
 import java.security.MessageDigest
-import org.elasticsearch.common.unit.TimeValue
 import java.util
 import java.io.File
-import org.elasticsearch.action.index.IndexRequestBuilder
 import scala.collection.JavaConversions._
 import java.math.BigInteger
-import org.elasticsearch.common.settings.ImmutableSettings
-import org.elasticsearch.node.NodeBuilder._
 import models.SearchHit
 import models.SearchResult
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
+import elasticsearch.services.ElasticsearchServiceProvider
+import elasticsearch.models.Document
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder
+import org.elasticsearch.search.highlight.HighlightBuilder
 
 object ElasticSearchHelper {
 
   private val log: Logger = LoggerFactory.getLogger(ElasticSearchHelper.getClass)
-
-  private val elasticsearchSettings = ImmutableSettings.settingsBuilder()
-    .put("path.data", "target/elasticsearch-data")
-    .put("http.port", 9200)
-
-  private val node = nodeBuilder().local(true).settings(elasticsearchSettings.build()).node()
-
-  val client = node.client()
 
   private val md5 = MessageDigest.getInstance("MD5")
 
@@ -52,25 +43,13 @@ object ElasticSearchHelper {
     log.info("Syncing files to elasticsearch")
     syncing = true
     log.info("clean old index")
-    try {
-      // clear old index
-      client.prepareDeleteByQuery(index).
-        setQuery(QueryBuilders.matchAllQuery()).
-        setTimeout(TimeValue.timeValueSeconds(5)).
-        setTypes(indexType).execute().actionGet()
-    } catch {
-      case o_O: Exception => log.warn("Unable to clear index", o_O)
-    }
+    // clear old index
+    ElasticsearchServiceProvider.get().documentRepository.deleteAll()
     // re index
     log.info("re-index")
-    val bulkIndex = client.prepareBulk()
-    val requests = handleFile(Global.getDocumentBaseDir)
-    if (requests.size > 0) {
-      requests.foreach(indexAction => bulkIndex.add(indexAction))
-      val response = bulkIndex.setTimeout(TimeValue.timeValueSeconds(5)).execute().actionGet()
-      if (response.hasFailures) {
-        log.warn("Warnings during bulk indexing documents: " + response.buildFailureMessage())
-      }
+    val documents = handleFile(Global.getDocumentBaseDir)
+    if (documents.size > 0) {
+      ElasticsearchServiceProvider.get().documentRepository.save(documents)
     }
     syncing = false
     log.info("Syncing files to elasticsearch - successfully")
@@ -90,19 +69,24 @@ object ElasticSearchHelper {
 
   def search(query: String): SearchResult = {
     if (syncing == false) {
+      val nativQuery = new NativeSearchQueryBuilder().withFields("name", "folder", "content")
+        .withHighlightFields(new HighlightBuilder.Field("content").fragmentSize(100).numOfFragments(100))
+        .withQuery(QueryBuilders.multiMatchQuery(query, "name", "folder", "content")).build()
+      val documents = ElasticsearchServiceProvider.get().documentRepository.search(nativQuery)
+
       try {
-        val result = client.prepareSearch(index).
+        val result = ElasticsearchServiceProvider.get().client.prepareSearch(index).
           setTypes(indexType).
-          addField("_name").
-          addField("_folder").
+          addField("name").
+          addField("folder").
           addField("content").
           addHighlightedField("content", 100, 100). // this is magic :)
-          setQuery(QueryBuilders.multiMatchQuery(query, "_name", "_folder", "content")).
+          setQuery(QueryBuilders.multiMatchQuery(query, "name", "folder", "content")).
           execute().actionGet()
         SearchResult(result.getHits.toList.sortBy(_.score()).reverse.map {
           entry =>
-            val file = if (entry.field("_name") != null) entry.field("_name").getValue[String] else ""
-            val folder = if (entry.field("_folder") != null) entry.field("_folder").getValue[String] else ""
+            val file = if (entry.field("content") != null) entry.field("name").getValue[String] else ""
+            val folder = if (entry.field("name") != null) entry.field("folder").getValue[String] else ""
             val content = if (entry.field("content") != null) entry.field("content").getValue[String] else ""
 
             val contentHighlights = entry.highlightFields().get("content")
@@ -125,7 +109,7 @@ object ElasticSearchHelper {
 
   private def emptyResult = SearchResult(List())
 
-  private def handleFile(file: File): List[IndexRequestBuilder] = {
+  private def handleFile(file: File): List[Document] = {
     if (file.exists()) {
       if (file.isDirectory) {
         file.listFiles().map {
@@ -135,16 +119,12 @@ object ElasticSearchHelper {
       } else {
         if (file.isFile && file.getName.startsWith(".") == false) {
           // is file
-          List(client.prepareIndex(index, indexType, hashFileName(file))
-            .setSource(// _body
-              jsonBuilder()
-                .startObject()
-                .field("_name", file.getName)
-                .field("_folder", file.getParentFile.getAbsolutePath.replace(Global.documentFolder, ""))
-                .field("content", base64(file))
-                .endObject()
-            ).setCreate(true)
-          )
+          val doc = new Document()
+          doc.id = hashFileName(file)
+          doc.folder = file.getParentFile.getAbsolutePath.replace(Global.documentFolder, "")
+          doc.name = file.getName
+          doc.content = base64(file)
+          List(doc)
         } else {
           List() // empty
         }
@@ -152,10 +132,6 @@ object ElasticSearchHelper {
     } else {
       List() // empty
     }
-  }
-
-  def close(): Unit = {
-    node.close()
   }
 
   private def hashFileName(file: File): String = {
