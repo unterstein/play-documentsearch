@@ -3,6 +3,7 @@ name := "play-documentsearch"
 version := "1.0-SNAPSHOT"
 
 resolvers ++= Seq(
+  Resolver.file("Local sbt repository", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns),
   "Local Maven" at "file://" + Path.userHome.absolutePath + "/.m2/repository"
 )
 
